@@ -39,8 +39,8 @@ def fetch_program_urls(year, quarter):
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("year", help="4-digit academic year (e.g. 2015)")
     parser.add_argument("quarter", help="first 3 letters of the quarter (e.g. SPR)")
+    parser.add_argument("year", help="4-digit academic year (e.g. 2015)")
     parser.add_argument("-d", "--days", help="abbreviated meeting days (e.g. MWF)")
     parser.add_argument("-t", "--time",
                         help="non-24hr meeting time interval/starting/ending time (e.g. 1230-120 or 1230 or 120)")
@@ -65,42 +65,43 @@ def search(url, days, building, time):
             del courses[0]  # remove table headers
             for course in courses:
                 parts = course.text.split()
+                sln_url = course.select_one('a')['href']
                 if time:
-                    time_node = ""
+                    time_nodes = []
                     for part in parts:
-                        if "-" in part:
-                            time_node = part
-                            break
+                        if '-' in part:
+                            time_nodes.append(part)
+                            time_nodes.extend(part.split('-'))
                     if building and days:
-                        if (building.upper() in parts) and (time in time_node) and (days in parts):
-                            print_result(parts, url)
+                        if (building.upper() in parts) and (time in time_nodes) and (days in parts):
+                            print_result(parts, sln_url)
                     elif building and not days:
-                        if (building.upper() in parts) and (time in time_node):
-                            print_result(parts, url)
+                        if (building.upper() in parts) and (time in time_nodes):
+                            print_result(parts, sln_url)
                     elif days and not building:
-                        if (days in parts) and (time in time_node):
-                            print_result(parts, url)
+                        if (days in parts) and (time in time_nodes):
+                            print_result(parts, sln_url)
                     else:
-                        if time in time_node:
-                            print_result(parts, url)
+                        if time in time_nodes:
+                            print_result(parts, sln_url)
                 elif days:
                     if building:
                         if (days in parts) and (building.upper() in parts):
-                            print_result(parts, url)
+                            print_result(parts, sln_url)
                     else:
                         if days in parts:
-                            print_result(parts, url)
+                            print_result(parts, sln_url)
                 elif building:
                     if building.upper() in parts:
-                        print_result(parts, url)
+                        print_result(parts, sln_url)
                 else:
-                    print_result(parts, url)
+                    print_result(parts, sln_url)
 
 
 if __name__ == '__main__':
     args = parse_args()
-    y = args.year
     q = args.quarter
+    y = args.year
     d = args.days
     b = args.building
     t = args.time
